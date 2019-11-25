@@ -25,7 +25,7 @@ def resetGlobals():
     
     xPos = 0
     yPos = 0 
-    count = 1
+    count = 0
     
     steps = 1
     
@@ -74,12 +74,36 @@ def moveNext():
         MOVERIGHT = True
         
 def addLocation(dataFrame):
-    global xPos
     moveNext()
 
     dataFrame.loc[count]['x'] = xPos
     dataFrame.loc[count]['y'] = yPos
     return dataFrame
+
+def addAns(dataFrame):
+    
+    # Get the adjacent cells answers
+    up = [a and b for a, b in zip(dataFrame['x']==xPos, dataFrame['y'] == yPos + 1)]
+    down = [a and b for a, b in zip(dataFrame['x']==xPos, dataFrame['y'] == yPos - 1)]
+    
+    leftUp = [a and b for a, b in zip(dataFrame['x']==xPos - 1, dataFrame['y'] == yPos + 1)]
+    left = [a and b for a, b in zip(dataFrame['x']==xPos - 1, dataFrame['y'] == yPos)]
+    leftDown = [a and b for a, b in zip(dataFrame['x']==xPos - 1, dataFrame['y'] == yPos - 1)]
+    
+    rightUp = [a and b for a, b in zip(dataFrame['x']==xPos + 1, dataFrame['y'] == yPos + 1)]
+    right = [a and b for a, b in zip(dataFrame['x']==xPos + 1, dataFrame['y'] == yPos)]
+    rightDown = [a and b for a, b in zip(dataFrame['x']==xPos + 1, dataFrame['y'] == yPos - 1)]
+    
+    for square in [up, left, leftUp, leftDown, down, rightDown, right, rightUp]:
+        try:
+            dataFrame.loc[count]["ANS"] += dataFrame.loc[dataFrame.index[square]]["ANS"]    
+        except:
+            pass
+
+    
+    moveNext()
+    return dataFrame
+
 
 def partOneMain():
     global xPos
@@ -89,7 +113,6 @@ def partOneMain():
     yPos = 0
     cell = 361527
     
-
     for i in range(cell -1):
         moveNext()
     print("Answer to part one: ", abs(xPos) + abs(yPos))
@@ -100,12 +123,18 @@ def partTwoMain():
     global count
     resetGlobals()
     count = 0
-    Grid = pandas.DataFrame(0, index = range(10), columns=['x', 'y', 'ANS'])
+    cellCount = 100
+    Grid = pandas.DataFrame(0, index = range(cellCount), columns=['x', 'y', 'ANS'])
     for i in range(len(Grid)-1):
         Grid = addLocation(Grid)
-    Grid.loc[0]['ANS'] = 1;
-   
-    print(Grid)
+    resetGlobals()
+    Grid.loc[0]["ANS"] = 1
+    moveNext()
+    while(Grid.loc[count -1]["ANS"] < 361527):
+        Grid = addAns(Grid)
+       
+    print(Grid.loc[count - 20:count])
+        
 
 if __name__ == "__main__":
     partOneMain()
